@@ -2,6 +2,26 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
+from django.urls import reverse
+
+class ApprovedMasterClassManager(models.Manager):
+    """Менеджер для получения только одобренных и предстоящих мастер-классов"""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            status='approved',
+            start_datetime__gte=timezone.now()  # ← ДЕМОНСТРАЦИЯ __ (lookup) и timezone
+        )
+
+    def by_category(self, category_slug):
+        """Метод менеджера: фильтр по категории"""
+        return self.filter(category__slug=category_slug)  # ← ДЕМОНСТРАЦИЯ __ (связанная таблица)
+
+    def popular(self, limit=5):
+        """Популярные МК (по количеству бронирований)"""
+        return self.annotate(
+            booking_count=models.Count('bookings')
+        ).order_by('-booking_count')[:limit]
 
 
 # ============================================================
@@ -71,6 +91,10 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        """← ДЕМОНСТРАЦИЯ get_absolute_url и reverse"""
+        return reverse('category_detail', kwargs={'slug': self.slug})
+
 
 # ============================================================
 # 3. МАСТЕР-КЛАСС
@@ -118,6 +142,9 @@ class MasterClass(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
+    objects = models.Manager()  # стандартный менеджер
+    approved_objects = ApprovedMasterClassManager()
+
     class Meta:
         verbose_name = "Мастер-класс"
         verbose_name_plural = "Мастер-классы"
@@ -146,6 +173,15 @@ class MasterClass(models.Model):
     def free_places(self):
         """Количество свободных мест"""
         return self.max_participants - self.current_participants
+
+    def get_absolute_url(self):
+        """← ДЕМОНСТРАЦИЯ get_absolute_url и reverse"""
+        return reverse('masterclass_detail', kwargs={'pk': self.pk})
+
+    # ДОБАВЬТЕ ЭТОТ МЕТОД:
+    def is_full(self):
+        """Проверка заполненности"""
+        return self.current_participants >= self.max_participants
 
 
 # ============================================================
@@ -301,3 +337,5 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.title} для {self.user.get_full_name()}"
+
+

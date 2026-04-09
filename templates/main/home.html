@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load masterclass_tags %}
+
+{% block title %}Главная — MasterClass Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- Приветственная секция -->
+    <section style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">
+            Найдите свой <span style="color: #E8A0B4;">мастер-класс</span>
+        </h1>
+        <p style="font-size: 1.2rem; color: #777; max-width: 600px; margin: 0 auto;">
+            {% get_categories_count %} категорий на любой вкус — от кулинарии до рукоделия
+        </p>
+    </section>
+
+    <!-- Предстоящие МК -->
+    <section style="margin-bottom: 3rem;">
+        <h2 style="margin-bottom: 1.5rem;">Ближайшие мастер-классы</h2>
+        <div class="grid">
+            {% get_upcoming_masterclasses 6 as upcoming %}
+            {% for mk in upcoming %}
+                <div class="card">
+                    {% if mk.images.first %}
+                        <img src="{{ mk.images.first.image.url }}" alt="{{ mk.title }}"
+                             style="width: 100%; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 1rem;">
+                    {% endif %}
+                    <h3 style="margin-bottom: 0.5rem;">
+                        <a href="{{ mk.get_absolute_url }}" style="color: var(--dark-text); text-decoration: none;">
+                            {{ mk.title }}
+                        </a>
+                    </h3>
+                    <p style="color: #777; margin-bottom: 0.5rem;">{{ mk.city }} • {{ mk.get_format_display }}</p>
+                    <p style="margin-bottom: 0.5rem;">{{ mk.start_datetime|date:"d.m.Y H:i" }}</p>
+                    <p style="font-weight: 600; color: #E8A0B4; margin-bottom: 1rem;">{{ mk.price }} ₽</p>
+                    <p>Свободно {{ mk.free_places }} {{ mk.free_places|rupluralize:"место,места,мест" }}</p>
+                </div>
+            {% empty %}
+                <p>Пока нет предстоящих мастер-классов</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Популярные МК (inclusion_tag) -->
+    <section style="margin-bottom: 3rem;">
+        {% show_popular_masterclasses limit=3 %}
+    </section>
+
+</div>
+{% endblock %}

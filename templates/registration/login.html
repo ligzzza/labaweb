@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 450px; margin: 3rem auto;">
+    <div class="card" style="padding: 2rem;">
+        <h2 style="text-align: center; margin-bottom: 2rem; font-weight: 500;">Вход в аккаунт</h2>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div style="background: #FFE0E0; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; color: #D44;">
+                    Неверный логин или пароль
+                </div>
+            {% endif %}
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--dark-text);">Имя пользователя</label>
+                <input type="text" name="username" required 
+                       style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 12px; font-family: 'Jost', sans-serif;">
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--dark-text);">Пароль</label>
+                <input type="password" name="password" required 
+                       style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 12px; font-family: 'Jost', sans-serif;">
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%; font-size: 1rem;">Войти</button>
+        </form>
+        
+        <p style="text-align: center; margin-top: 1.5rem;">
+            Нет аккаунта? <a href="{% url 'register' %}" style="color: #E8A0B4; text-decoration: none;">Зарегистрироваться</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

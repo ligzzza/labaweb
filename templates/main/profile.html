@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Личный кабинет{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="margin-bottom: 2rem;">Личный кабинет</h1>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        
+        <!-- Левая колонка: информация о пользователе -->
+        <div class="card">
+            <h2 style="margin-bottom: 1.5rem;">Профиль</h2>
+            <p><strong>Имя пользователя:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Роль:</strong> {{ user.get_role_display }}</p>
+            <p><strong>Телефон:</strong> {{ user.phone|default:"Не указан" }}</p>
+            <p><strong>Дата регистрации:</strong> {{ user.date_joined|date:"d.m.Y" }}</p>
+        </div>
+        
+        <!-- Правая колонка: статистика -->
+        <div class="card">
+            <h2 style="margin-bottom: 1.5rem;">Статистика</h2>
+            <p><strong>Всего бронирований:</strong> {{ bookings.count }}</p>
+            <p><strong>Активных бронирований:</strong> {{ active_bookings.count }}</p>
+            <p><strong>В избранном:</strong> {{ favorites.count }}</p>
+        </div>
+    </div>
+    
+    <!-- Мои бронирования -->
+    <div style="margin-top: 3rem;">
+        <h2 style="margin-bottom: 1.5rem;">Мои бронирования</h2>
+        
+        {% if bookings %}
+            <div class="grid">
+                {% for booking in bookings %}
+                    <div class="card">
+                        <h3>{{ booking.masterclass.title }}</h3>
+                        <p>{{ booking.masterclass.city }} • {{ booking.masterclass.start_datetime|date:"d.m.Y H:i" }}</p>
+                        <p>Статус: <span style="color: {% if booking.status == 'confirmed' %}green{% elif booking.status == 'cancelled' %}red{% else %}orange{% endif %};">
+                            {{ booking.get_status_display }}
+                        </span></p>
+                        <p>Оплата: {{ booking.get_payment_status_display }}</p>
+                        <p>Сумма: {{ booking.total_price }} ₽</p>
+                        <p>Дата бронирования: {{ booking.created_at|date:"d.m.Y" }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>У вас пока нет бронирований.</p>
+            <a href="{% url 'catalog' %}" class="btn">Перейти в каталог</a>
+        {% endif %}
+    </div>
+    
+    <!-- Избранное -->
+    <div style="margin-top: 3rem;">
+        <h2 style="margin-bottom: 1.5rem;">Избранное</h2>
+        
+        {% if favorites %}
+            <div class="grid">
+                {% for fav in favorites %}
+                    <div class="card">
+                        <h3>
+                            <a href="{{ fav.masterclass.get_absolute_url }}" style="color: var(--dark-text); text-decoration: none;">
+                                {{ fav.masterclass.title }}
+                            </a>
+                        </h3>
+                        <p>{{ fav.masterclass.city }} • {{ fav.masterclass.start_datetime|date:"d.m.Y H:i" }}</p>
+                        <p>{{ fav.masterclass.price }} ₽</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>В избранном пока ничего нет.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

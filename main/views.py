@@ -2,11 +2,16 @@ from rest_framework import viewsets, generics, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
+
+from .forms import CustomUserCreationForm
 from .models import MasterClass, Category, Booking, Review, Favorite, Notification
 from .serializers import (
     MasterClassSerializer, CategorySerializer, BookingSerializer,
     ReviewSerializer, FavoriteSerializer, UserSerializer
 )
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
 User = get_user_model()
 
@@ -120,3 +125,73 @@ class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
+
+from django.shortcuts import render
+
+# ============================================================
+# ФРОНТЕНД (HTML-СТРАНИЦЫ)
+# ============================================================
+
+def home(request):
+    """Главная страница"""
+    return render(request, 'main/home.html')
+
+
+def catalog(request):
+    """Каталог мастер-классов"""
+    return render(request, 'main/catalog.html')
+
+
+def masterclass_detail(request, pk):
+    """Детальная страница мастер-класса"""
+    return render(request, 'main/masterclass_detail.html')
+
+
+def category_detail(request, slug):
+    """Страница категории"""
+    return render(request, 'main/category_detail.html')
+
+
+def register(request):
+    """Регистрация"""
+    return render(request, 'registration/register.html')
+
+
+def user_login(request):
+    """Вход"""
+    return render(request, 'registration/login.html')
+
+
+def profile(request):
+    """Личный кабинет"""
+    return render(request, 'main/profile.html')
+
+
+def add_review(request, masterclass_pk):
+    """Добавление отзыва"""
+    return render(request, 'main/add_review.html')
+
+
+def register(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = CustomUserCreationForm()
+
+    return render(request, 'registration/register.html', {'form': form})
+
+
+def user_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'registration/login.html', {'form': form})

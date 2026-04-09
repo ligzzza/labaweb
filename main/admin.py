@@ -255,14 +255,24 @@ class MasterClassAdmin(admin.ModelAdmin):
     )
     def participants_progress(self, obj):
         """Визуальный прогресс-бар заполнения мест"""
-        percent = (obj.current_participants / obj.max_participants * 100) if obj.max_participants else 0
-        color = 'green' if percent < 70 else 'orange' if percent < 90 else 'red'
+        if obj.max_participants and obj.max_participants > 0:
+            percent = int((obj.current_participants / obj.max_participants) * 100)
+        else:
+            percent = 0
+
+        if percent < 70:
+            color = 'green'
+        elif percent < 90:
+            color = 'orange'
+        else:
+            color = 'red'
+
         return format_html(
             '<div style="width:100px; background:#eee; border-radius:10px;">'
             '<div style="width:{}%; background:{}; height:10px; border-radius:10px;"></div>'
             '</div>'
-            '<small>{}/{} ({:.0f}%)</small>',
-            percent, color, obj.current_participants, obj.max_participants, percent
+            '<small>{}/{} ({}%)</small>',
+            str(percent), color, obj.current_participants, obj.max_participants, str(percent)
         )
 
     @admin.display(
@@ -288,7 +298,9 @@ class MasterClassAdmin(admin.ModelAdmin):
 
     def free_places_display(self, obj):
         """Свободные места (для страницы редактирования)"""
-        free = obj.max_participants - obj.current_participants
+        if obj.pk is None:  # новый объект
+            return "—"
+        free = (obj.max_participants or 0) - (obj.current_participants or 0)
         if free > 0:
             return format_html('<span style="color:green; font-weight:bold;">{} мест</span>', free)
         return format_html('<span style="color:red;">Мест нет</span>')
@@ -297,13 +309,17 @@ class MasterClassAdmin(admin.ModelAdmin):
 
     def total_revenue_display(self, obj):
         """Общая выручка с мастер-класса"""
+        if obj.pk is None:
+            return "—"
         total = obj.bookings.filter(payment_status='paid').aggregate(Sum('total_price'))['total_price__sum'] or 0
         return f"{total:,.0f} ₽".replace(',', ' ')
 
-    total_revenue_display.short_description = "Выручка"
+    total_revenue_display.short_description = "💰 Выручка"
 
     def average_rating_display(self, obj):
         """Средний рейтинг"""
+        if obj.pk is None:
+            return "—"
         avg = obj.reviews.filter(status='approved').aggregate(Avg('rating'))['rating__avg']
         if avg:
             stars = '★' * int(avg) + '☆' * (5 - int(avg))

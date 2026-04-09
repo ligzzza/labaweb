@@ -1,0 +1,27 @@
+{% load masterclass_tags %}
+
+<div class="popular-section" style="margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem;">
+        <h2 style="font-weight: 500; color: var(--dark-text);">{{ title }}</h2>
+        <a href="{% url 'catalog' %}" style="color: #E8A0B4; text-decoration: none; font-weight: 500; font-size: 0.95rem;">
+            Все мастер-классы →
+        </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+        {% for mk in popular_masterclasses %}
+            <a href="{{ mk.get_absolute_url }}" style="text-decoration: none; color: inherit;">
+                <div style="background: white; border-radius: 16px; padding: 1.2rem; transition: all 0.2s; border: 1px solid #FFE8EE; height: 100%;">
+                    <h4 style="margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">{{ mk.title }}</h4>
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem;">{{ mk.city }}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600; color: #E8A0B4;">{{ mk.price }} ₽</span>
+                        <span style="color: #B5EAD7; font-size: 0.85rem;">{{ mk.bookings.count }} записей</span>
+                    </div>
+                </div>
+            </a>
+        {% empty %}
+            <p style="grid-column: 1/-1; text-align: center; color: #999;">Пока нет популярных мастер-классов</p>
+        {% endfor %}
+    </div>
+</div>
