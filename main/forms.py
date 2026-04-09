@@ -9,10 +9,9 @@ class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(
         required=True,
         label="Email",
-        validators=[EmailValidator(message="Введите корректный email адрес")],
         widget=forms.EmailInput(attrs={
             'placeholder': 'example@gmail.com',
-            'style': 'width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 12px; font-family: "Jost", sans-serif;'
+            'style': 'width: 100%; padding: 0.8rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: "Jost", sans-serif;'
         })
     )
 
@@ -20,7 +19,7 @@ class CustomUserCreationForm(UserCreationForm):
         label="Имя пользователя",
         widget=forms.TextInput(attrs={
             'placeholder': 'username',
-            'style': 'width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 12px; font-family: "Jost", sans-serif;'
+            'style': 'width: 100%; padding: 0.8rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: "Jost", sans-serif;'
         })
     )
 
@@ -28,7 +27,7 @@ class CustomUserCreationForm(UserCreationForm):
         label="Пароль",
         widget=forms.PasswordInput(attrs={
             'placeholder': 'Не менее 8 символов',
-            'style': 'width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 12px; font-family: "Jost", sans-serif;'
+            'style': 'width: 100%; padding: 0.8rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: "Jost", sans-serif;'
         })
     )
 
@@ -36,17 +35,26 @@ class CustomUserCreationForm(UserCreationForm):
         label="Подтверждение пароля",
         widget=forms.PasswordInput(attrs={
             'placeholder': 'Повторите пароль',
-            'style': 'width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 12px; font-family: "Jost", sans-serif;'
+            'style': 'width: 100%; padding: 0.8rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: "Jost", sans-serif;'
         })
+    )
+
+    # ===== ВЫБОР РОЛИ =====
+    role = forms.ChoiceField(
+        choices=[('participant', 'Участник'), ('organizer', 'Организатор')],
+        label="Я хочу",
+        widget=forms.Select(attrs={
+            'style': 'width: 100%; padding: 0.8rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: "Jost", sans-serif; background: white;'
+        }),
+        initial='participant'
     )
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2')
+        fields = ('username', 'email', 'password1', 'password2', 'role')
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        # Проверяем, что email не занят
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("Пользователь с таким email уже зарегистрирован")
         return email
@@ -54,7 +62,7 @@ class CustomUserCreationForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
-        user.role = 'participant'
+        user.role = self.cleaned_data['role']  # ← сохраняем выбранную роль
         if commit:
             user.save()
         return user

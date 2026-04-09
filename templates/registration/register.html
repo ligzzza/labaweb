@@ -54,6 +54,25 @@
                     <small style="color: #D44;">{{ form.email.errors.0 }}</small>
                 {% endif %}
             </div>
+
+                        <!-- Выбор роли -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--dark-text); font-weight: 500;">
+                    Я хочу
+                </label>
+                <select name="role"
+                        style="width: 100%; padding: 0.8rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; background: white; cursor: pointer;">
+                    <option value="participant" {% if form.role.value == 'participant' %}selected{% endif %}>
+                        Участник — хочу записываться на мастер-классы
+                    </option>
+                    <option value="organizer" {% if form.role.value == 'organizer' %}selected{% endif %}>
+                        Организатор — хочу проводить мастер-классы
+                    </option>
+                </select>
+                {% if form.role.errors %}
+                    <small style="color: #D44;">{{ form.role.errors.0 }}</small>
+                {% endif %}
+            </div>
             
             <button type="submit" class="btn" style="width: 100%; font-size: 1rem;">Зарегистрироваться</button>
         </form>
