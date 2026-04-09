@@ -16,7 +16,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Prefetch
-from .models import MasterClass, Category, Booking
+from .models import MasterClass, Category, Booking, Image
 from .forms import MasterClassForm, ReviewForm
 
 User = get_user_model()
@@ -283,11 +283,19 @@ def create_masterclass(request):
         return redirect('home')
 
     if request.method == 'POST':
-        form = MasterClassForm(request.POST)
+        form = MasterClassForm(request.POST, request.FILES)
         if form.is_valid():
             masterclass = form.save(commit=False)
             masterclass.organizer = request.user
             masterclass.save()  # commit=True здесь
+            # Сохраняем загруженные изображения
+            images = request.FILES.getlist('images')
+            for i, image in enumerate(images):
+                Image.objects.create(
+                    masterclass=masterclass,
+                    image=image,
+                    is_main=(i == 0)  # первое фото — главное
+                )
             return redirect('masterclass_detail', pk=masterclass.pk)
     else:
         form = MasterClassForm()
@@ -304,15 +312,24 @@ def edit_masterclass(request, pk):
         return redirect('home')
 
     if request.method == 'POST':
-        form = MasterClassForm(request.POST, instance=masterclass)
+        form = MasterClassForm(request.POST, request.FILES, instance=masterclass)  # ← request.FILES
         if form.is_valid():
-            form.save()
+            masterclass = form.save()
+
+            # Сохраняем новые изображения (если загружены)
+            images = request.FILES.getlist('images')
+            for i, image in enumerate(images):
+                Image.objects.create(
+                    masterclass=masterclass,
+                    image=image,
+                    is_main=(i == 0 and not masterclass.images.exists())
+                )
+
             return redirect('masterclass_detail', pk=masterclass.pk)
     else:
         form = MasterClassForm(instance=masterclass)
 
     return render(request, 'main/masterclass_form.html', {'form': form, 'title': 'Редактирование мастер-класса'})
-
 
 # ===== УДАЛЕНИЕ МАСТЕР-КЛАССА =====
 @login_required

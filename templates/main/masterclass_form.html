@@ -7,7 +7,7 @@
     <div class="card" style="padding: 2.5rem;">
         <h2 style="margin-bottom: 2rem; font-weight: 500; text-align: center;">{{ title }}</h2>
 
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
             {% if form.non_field_errors %}
@@ -151,6 +151,34 @@
                     <small style="color: #999; display: block; margin-top: 0.3rem;">Минимум 2 участника</small>
                 {% endif %}
             </div>
+            <!-- Загрузка фотографий -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">
+                    Фотографии
+                </label>
+
+                <div style="border: 2px dashed #FFD1DC; border-radius: 16px; padding: 1.5rem; text-align: center; background: #FFF9F9;">
+                    <input type="file" name="images" multiple accept="image/*" id="image-upload"
+                           style="display: none;">
+
+                    <label for="image-upload" style="cursor: pointer; display: block;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;"></div>
+                        <p style="color: var(--dark-text); margin-bottom: 0.5rem; font-weight: 500;">
+                            Нажмите или перетащите фото
+                        </p>
+                        <p style="color: #999; font-size: 0.9rem;">
+                            Можно выбрать несколько файлов. Первое фото будет главным.
+                        </p>
+                    </label>
+                </div>
+
+                <!-- Предпросмотр выбранных фото -->
+                <div id="image-preview" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;"></div>
+
+                {% if form.images.errors %}
+                    <small style="color: #D44; display: block; margin-top: 0.3rem;">{{ form.images.errors.0 }}</small>
+                {% endif %}
+            </div>
 
             <!-- Даты в две колонки -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
@@ -201,4 +229,75 @@
         </form>
     </div>
 </div>
+<script>
+    const imageUpload = document.getElementById('image-upload');
+    const previewContainer = document.getElementById('image-preview');
+
+    imageUpload.addEventListener('change', function() {
+        previewContainer.innerHTML = '';
+
+        for (let i = 0; i < this.files.length; i++) {
+            const file = this.files[i];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const preview = document.createElement('div');
+                preview.style.position = 'relative';
+                preview.style.width = '100px';
+                preview.style.height = '100px';
+
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '8px';
+
+                if (i === 0) {
+                    const badge = document.createElement('span');
+                    badge.textContent = 'Главное';
+                    badge.style.position = 'absolute';
+                    badge.style.bottom = '5px';
+                    badge.style.left = '5px';
+                    badge.style.background = '#E8A0B4';
+                    badge.style.color = 'white';
+                    badge.style.padding = '2px 6px';
+                    badge.style.borderRadius = '12px';
+                    badge.style.fontSize = '10px';
+                    preview.appendChild(badge);
+                }
+
+                preview.appendChild(img);
+                previewContainer.appendChild(preview);
+            };
+
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Drag & drop
+    const dropZone = document.querySelector('[style*="border: 2px dashed"]');
+
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.style.borderColor = '#E8A0B4';
+        this.style.background = '#FFE8EE';
+    });
+
+    dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.style.borderColor = '#FFD1DC';
+        this.style.background = '#FFF9F9';
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.style.borderColor = '#FFD1DC';
+        this.style.background = '#FFF9F9';
+
+        const files = e.dataTransfer.files;
+        imageUpload.files = files;
+        imageUpload.dispatchEvent(new Event('change'));
+    });
+</script>
 {% endblock %}

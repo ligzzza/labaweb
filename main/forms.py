@@ -117,6 +117,7 @@ class MasterClassForm(forms.ModelForm):
             'max_participants': 'Максимум участников',
         }
 
+
     # ===== clean_<fieldname>() =====
     def clean_price(self):
         price = self.cleaned_data.get('price')
