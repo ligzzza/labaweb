@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Избранное{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#E8A0B4" stroke="#E8A0B4" stroke-width="1.5">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        Избранное
+    </h1>
+
+    {% if favorites %}
+        <div class="grid">
+            {% for favorite in favorites %}
+                <div class="card">
+                    <a href="{{ favorite.masterclass.get_absolute_url }}" style="text-decoration: none; color: inherit;">
+                        {% if favorite.masterclass.images.first %}
+                            <img src="{{ favorite.masterclass.images.first.image.url }}" alt="{{ favorite.masterclass.title }}"
+                                 style="width: 100%; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 1rem;">
+                        {% else %}
+                            <div style="width: 100%; height: 200px; background: var(--soft-pink); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                                🎨
+                            </div>
+                        {% endif %}
+
+                        <h3>{{ favorite.masterclass.title }}</h3>
+                        <p style="color: #777;">{{ favorite.masterclass.city }}</p>
+                        <p style="font-weight: 600; color: #E8A0B4;">{{ favorite.masterclass.price }} ₽</p>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 4rem;">
+            <p style="font-size: 3rem; margin-bottom: 1rem;">🤍</p>
+            <p style="color: #999; margin-bottom: 2rem;">В избранном пока ничего нет</p>
+            <a href="{% url 'catalog' %}" class="btn">Перейти в каталог</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

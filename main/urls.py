@@ -31,4 +31,8 @@ urlpatterns = [
     path('masterclass/<int:pk>/edit/', views.edit_masterclass, name='edit_masterclass'),
     path('masterclass/<int:pk>/delete/', views.delete_masterclass, name='delete_masterclass'),
 
+    path('masterclass/<int:pk>/favorite/', views.toggle_favorite, name='toggle_favorite'),
+    path('masterclass/<int:pk>/favorite/toggle/', views.toggle_favorite_api, name='toggle_favorite_api'),
+    path('my-favorites/', views.favorites_list, name='favorites_list'),
+
 ]

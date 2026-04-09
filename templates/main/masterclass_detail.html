@@ -29,54 +29,71 @@
         
         <!-- Правая колонка: информация -->
         <div>
-            <h1 style="font-size: 2rem; margin-bottom: 1rem;">{{ masterclass.title }}</h1>
-            
+            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">{{ masterclass.title }}</h1>
             <p style="margin-bottom: 1rem; color: #E8A0B4;">⭐ {{ masterclass.reviews.count }} отзывов</p>
             <p style="margin-bottom: 0.5rem;">📍 {{ masterclass.city }}{% if masterclass.address %}, {{ masterclass.address }}{% endif %}</p>
             <p style="margin-bottom: 0.5rem;">📅 {{ masterclass.start_datetime|date:"d.m.Y H:i" }} — {{ masterclass.end_datetime|date:"H:i" }}</p>
             <p style="margin-bottom: 0.5rem;">👥 {{ masterclass.current_participants }}/{{ masterclass.max_participants }} участников</p>
             <p style="margin-bottom: 1rem;">🎨 {{ masterclass.get_format_display }}</p>
-            
+
             <p style="font-size: 2rem; font-weight: 600; color: #E8A0B4; margin-bottom: 1.5rem;">
                 {{ masterclass.price }} ₽
             </p>
-            
-            {% if user.is_authenticated %}
-                {% if not masterclass.is_full %}
-                    <button class="btn" style="font-size: 1.1rem;">Забронировать</button>
+
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                {% if user.is_authenticated %}
+                    {% if not masterclass.is_full %}
+                        <button class="btn" style="font-size: 1rem; font-family: 'Jost', sans-serif; padding: 0.8rem 2rem;">
+                            Забронировать
+                        </button>
+                    {% else %}
+                        <p style="color: #D44; font-family: 'Jost', sans-serif; margin: 0;">Мест нет</p>
+                    {% endif %}
+
+                    <!-- Сердечко РЯДОМ с кнопкой -->
+                    <button id="favorite-btn" data-mk-id="{{ masterclass.pk }}"
+                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;"
+                            title="{% if is_favorite %}Убрать из избранного{% else %}Добавить в избранное{% endif %}">
+                        <svg width="36" height="36" viewBox="0 0 24 24"
+                             fill="{% if is_favorite %}#E8A0B4{% else %}none{% endif %}"
+                             stroke="#E8A0B4" stroke-width="1.8" id="favorite-icon">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </button>
                 {% else %}
-                    <p style="color: red;">Мест нет</p>
+                    <p style="font-family: 'Jost', sans-serif; margin: 0;">
+                        <a href="{% url 'login' %}" style="color: #E8A0B4;">Войдите</a>, чтобы забронировать
+                    </p>
+                    <a href="{% url 'login' %}" title="Войдите, чтобы добавить в избранное">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#E8A0B4" stroke-width="1.8">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </a>
                 {% endif %}
-            {% else %}
-                <p><a href="{% url 'login' %}">Войдите</a>, чтобы забронировать</p>
-            {% endif %}
-            
-<!-- ===== КНОПКИ РЕДАКТИРОВАНИЯ/УДАЛЕНИЯ ===== -->
+            </div>
+
+            <!-- Кнопки редактирования/удаления -->
             {% if user == masterclass.organizer or user.is_admin %}
                 <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
                     <a href="{% url 'edit_masterclass' masterclass.pk %}"
-                       style="display: inline-block; padding: 0.7rem 1.5rem; background: transparent; border: 2px solid var(--soft-blue); border-radius: 30px; color: var(--dark-text); text-decoration: none; font-weight: 500; transition: all 0.3s;"
-                       onmouseover="this.style.background='var(--soft-blue)'; this.style.borderColor='var(--soft-blue)';"
-                       onmouseout="this.style.background='transparent';">
-                        Редактировать
+                       style="display: inline-block; padding: 0.7rem 1.5rem; background: transparent; border: 2px solid var(--soft-blue); border-radius: 30px; color: var(--dark-text); text-decoration: none; font-weight: 500;">
+                        ✏️ Редактировать
                     </a>
                     <a href="{% url 'delete_masterclass' masterclass.pk %}"
-                       style="display: inline-block; padding: 0.7rem 1.5rem; background: transparent; border: 2px solid #FFB5B5; border-radius: 30px; color: #D44; text-decoration: none; font-weight: 500; transition: all 0.3s;"
-                       onmouseover="this.style.background='#FFB5B5'; this.style.color='white';"
-                       onmouseout="this.style.background='transparent'; this.style.color='#D44';">
-                        Удалить
+                       style="display: inline-block; padding: 0.7rem 1.5rem; background: transparent; border: 2px solid #FFB5B5; border-radius: 30px; color: #D44; text-decoration: none; font-weight: 500;">
+                        🗑️ Удалить
                     </a>
                 </div>
             {% endif %}
         </div>
     </div>
-    
+
     <!-- Описание -->
     <div style="margin-top: 3rem;">
         <h2 style="margin-bottom: 1rem;">Описание</h2>
         <p style="white-space: pre-line; line-height: 1.8;">{{ masterclass.description }}</p>
     </div>
-    
+
     <!-- Организатор -->
     <div style="margin-top: 2rem; padding: 1.5rem; background: white; border-radius: 16px; border: 1px solid #FFE8EE;">
         <h3 style="margin-bottom: 0.5rem;">Организатор</h3>
@@ -84,33 +101,54 @@
         {% if masterclass.organizer.organization_name %}
             <p style="color: #777;">{{ masterclass.organizer.organization_name }}</p>
         {% endif %}
-        {% if masterclass.organizer.organization_description %}
-            <p style="margin-top: 0.5rem;">{{ masterclass.organizer.organization_description }}</p>
-        {% endif %}
     </div>
-    
+
     <!-- Отзывы -->
     <div style="margin-top: 3rem;">
         <h2 style="margin-bottom: 1.5rem;">Отзывы</h2>
-        
-        {% if user_has_booking and not user_review %}
-            <a href="{% url 'add_review' masterclass.pk %}" class="btn-outline" style="text-decoration: none; display: inline-block; margin-bottom: 1.5rem;">
-                ✏️ Оставить отзыв
-            </a>
-        {% endif %}
-        
+
         {% for review in reviews %}
             <div style="background: white; padding: 1.5rem; border-radius: 16px; margin-bottom: 1rem; border: 1px solid #FFE8EE;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; justify-content: space-between;">
                     <strong>{{ review.author.get_full_name }}</strong>
                     <span style="color: #E8A0B4;">{{ review.rating|rating_stars }}</span>
                 </div>
-                <p style="margin-top: 0.8rem; line-height: 1.6;">{{ review.text }}</p>
+                <p style="margin-top: 0.8rem;">{{ review.text }}</p>
                 <small style="color: #999;">{{ review.created_at|date:"d.m.Y" }}</small>
             </div>
         {% empty %}
-            <p style="color: #999;">Пока нет отзывов. Будьте первым!</p>
+            <p style="color: #999;">Пока нет отзывов</p>
         {% endfor %}
     </div>
 </div>
+{% if user.is_authenticated %}
+<script>
+    const favBtn = document.getElementById('favorite-btn');
+    if (favBtn) {
+        favBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const mkId = this.dataset.mkId;
+            const icon = document.getElementById('favorite-icon');
+
+            fetch('/api/masterclass/' + mkId + '/favorite/toggle/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_favorite) {
+                    icon.setAttribute('fill', '#E8A0B4');
+                    this.title = 'Убрать из избранного';
+                } else {
+                    icon.setAttribute('fill', 'none');
+                    this.title = 'Добавить в избранное';
+                }
+            })
+            .catch(error => console.error('Ошибка:', error));
+        });
+    }
+</script>
+{% endif %}
 {% endblock %}

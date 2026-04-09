@@ -21,6 +21,53 @@ from .forms import MasterClassForm, ReviewForm
 
 User = get_user_model()
 
+from django.contrib.auth.decorators import login_required
+from .models import MasterClass, Favorite
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+
+
+# Страница избранного
+@login_required
+def favorites_list(request):
+    favorites = Favorite.objects.filter(user=request.user).select_related('masterclass')
+    return render(request, 'main/favorites.html', {'favorites': favorites})
+
+
+# Переключение избранного с перезагрузкой страницы
+@login_required
+def toggle_favorite(request, pk):
+    masterclass = get_object_or_404(MasterClass, pk=pk)
+    favorite, created = Favorite.objects.get_or_create(
+        user=request.user,
+        masterclass=masterclass
+    )
+
+    if not created:
+        favorite.delete()
+
+    return redirect('masterclass_detail', pk=pk)
+
+
+# API для AJAX
+@login_required
+def toggle_favorite_api(request, pk):
+    masterclass = get_object_or_404(MasterClass, pk=pk)
+    favorite, created = Favorite.objects.get_or_create(
+        user=request.user,
+        masterclass=masterclass
+    )
+
+    if not created:
+        favorite.delete()
+        is_favorite = False
+    else:
+        is_favorite = True
+
+    return JsonResponse({'is_favorite': is_favorite})
+
 
 # ============================================================
 # VIEWSETS ДЛЯ МАСТЕР-КЛАССОВ
