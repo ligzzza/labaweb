@@ -13,6 +13,12 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.db.models import Prefetch
+from .models import MasterClass, Category, Booking
+from .forms import MasterClassForm, ReviewForm
+
 User = get_user_model()
 
 
@@ -143,8 +149,27 @@ def catalog(request):
 
 
 def masterclass_detail(request, pk):
-    """Детальная страница мастер-класса"""
-    return render(request, 'main/masterclass_detail.html')
+    masterclass = get_object_or_404(MasterClass, pk=pk, status='approved')
+    reviews = masterclass.reviews.filter(status='approved').order_by('-created_at')
+
+    user_has_booking = False
+    user_review = None
+    if request.user.is_authenticated:
+        user_has_booking = Booking.objects.filter(
+            participant=request.user,
+            masterclass=masterclass,
+            status__in=['confirmed', 'completed']
+        ).exists()
+        if user_has_booking:
+            user_review = Review.objects.filter(author=request.user, masterclass=masterclass).first()
+
+    context = {
+        'masterclass': masterclass,
+        'reviews': reviews,
+        'user_has_booking': user_has_booking,
+        'user_review': user_review,
+    }
+    return render(request, 'main/masterclass_detail.html', context)
 
 
 def category_detail(request, slug):
@@ -195,3 +220,74 @@ def user_login(request):
     else:
         form = AuthenticationForm()
     return render(request, 'registration/login.html', {'form': form})
+
+
+# ===== СОЗДАНИЕ МАСТЕР-КЛАССА =====
+@login_required
+def create_masterclass(request):
+    if request.user.role not in ['organizer', 'admin']:
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = MasterClassForm(request.POST)
+        if form.is_valid():
+            masterclass = form.save(commit=False)
+            masterclass.organizer = request.user
+            masterclass.save()  # commit=True здесь
+            return redirect('masterclass_detail', pk=masterclass.pk)
+    else:
+        form = MasterClassForm()
+
+    return render(request, 'main/masterclass_form.html', {'form': form, 'title': 'Создание мастер-класса'})
+
+
+# ===== РЕДАКТИРОВАНИЕ МАСТЕР-КЛАССА =====
+@login_required
+def edit_masterclass(request, pk):
+    masterclass = get_object_or_404(MasterClass, pk=pk)
+
+    if request.user != masterclass.organizer and not request.user.is_admin:
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = MasterClassForm(request.POST, instance=masterclass)
+        if form.is_valid():
+            form.save()
+            return redirect('masterclass_detail', pk=masterclass.pk)
+    else:
+        form = MasterClassForm(instance=masterclass)
+
+    return render(request, 'main/masterclass_form.html', {'form': form, 'title': 'Редактирование мастер-класса'})
+
+
+# ===== УДАЛЕНИЕ МАСТЕР-КЛАССА =====
+@login_required
+def delete_masterclass(request, pk):
+    masterclass = get_object_or_404(MasterClass, pk=pk)
+
+    if request.user != masterclass.organizer and not request.user.is_admin:
+        return redirect('home')
+
+    if request.method == 'POST':
+        masterclass.delete()
+        return redirect('catalog')
+
+    return render(request, 'main/masterclass_confirm_delete.html', {'masterclass': masterclass})
+
+# ===== ДЕМОНСТРАЦИЯ select_related И prefetch_related =====
+def catalog_optimized(request):
+    # select_related — для ForeignKey (один SQL-запрос вместо N+1)
+    masterclasses = MasterClass.objects.select_related('category', 'organizer').all()
+
+    # prefetch_related — для обратных связей (ManyToOne, ManyToMany)
+    categories = Category.objects.prefetch_related(
+        Prefetch('masterclasses', queryset=MasterClass.objects.filter(status='approved'))
+    ).all()
+
+    # Ещё пример с prefetch_related
+    masterclasses_with_images = MasterClass.objects.prefetch_related('images').filter(status='approved')
+
+    return render(request, 'main/catalog.html', {
+        'masterclasses': masterclasses,
+        'categories': categories,
+    })

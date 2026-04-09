@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load masterclass_tags %}
+
+{% block title %}{{ masterclass.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <!-- Хлебные крошки -->
+    <div style="margin-bottom: 1.5rem;">
+        <a href="{% url 'home' %}" style="color: #999; text-decoration: none;">Главная</a> /
+        <a href="{% url 'catalog' %}" style="color: #999; text-decoration: none;">Каталог</a> /
+        <span style="color: var(--dark-text);">{{ masterclass.title }}</span>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+        
+        <!-- Левая колонка: фото -->
+        <div>
+            {% if masterclass.images.first %}
+                <img src="{{ masterclass.images.first.image.url }}" alt="{{ masterclass.title }}" 
+                     style="width: 100%; border-radius: 20px; object-fit: cover;">
+            {% else %}
+                <div style="width: 100%; height: 300px; background: var(--soft-pink); border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+                    🎨
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Правая колонка: информация -->
+        <div>
+            <h1 style="font-size: 2rem; margin-bottom: 1rem;">{{ masterclass.title }}</h1>
+            
+            <p style="margin-bottom: 1rem; color: #E8A0B4;">⭐ {{ masterclass.reviews.count }} отзывов</p>
+            <p style="margin-bottom: 0.5rem;">📍 {{ masterclass.city }}{% if masterclass.address %}, {{ masterclass.address }}{% endif %}</p>
+            <p style="margin-bottom: 0.5rem;">📅 {{ masterclass.start_datetime|date:"d.m.Y H:i" }} — {{ masterclass.end_datetime|date:"H:i" }}</p>
+            <p style="margin-bottom: 0.5rem;">👥 {{ masterclass.current_participants }}/{{ masterclass.max_participants }} участников</p>
+            <p style="margin-bottom: 1rem;">🎨 {{ masterclass.get_format_display }}</p>
+            
+            <p style="font-size: 2rem; font-weight: 600; color: #E8A0B4; margin-bottom: 1.5rem;">
+                {{ masterclass.price }} ₽
+            </p>
+            
+            {% if user.is_authenticated %}
+                {% if not masterclass.is_full %}
+                    <button class="btn" style="font-size: 1.1rem;">Забронировать</button>
+                {% else %}
+                    <p style="color: red;">Мест нет</p>
+                {% endif %}
+            {% else %}
+                <p><a href="{% url 'login' %}">Войдите</a>, чтобы забронировать</p>
+            {% endif %}
+            
+<!-- ===== КНОПКИ РЕДАКТИРОВАНИЯ/УДАЛЕНИЯ ===== -->
+            {% if user == masterclass.organizer or user.is_admin %}
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                    <a href="{% url 'edit_masterclass' masterclass.pk %}"
+                       style="display: inline-block; padding: 0.7rem 1.5rem; background: transparent; border: 2px solid var(--soft-blue); border-radius: 30px; color: var(--dark-text); text-decoration: none; font-weight: 500; transition: all 0.3s;"
+                       onmouseover="this.style.background='var(--soft-blue)'; this.style.borderColor='var(--soft-blue)';"
+                       onmouseout="this.style.background='transparent';">
+                        Редактировать
+                    </a>
+                    <a href="{% url 'delete_masterclass' masterclass.pk %}"
+                       style="display: inline-block; padding: 0.7rem 1.5rem; background: transparent; border: 2px solid #FFB5B5; border-radius: 30px; color: #D44; text-decoration: none; font-weight: 500; transition: all 0.3s;"
+                       onmouseover="this.style.background='#FFB5B5'; this.style.color='white';"
+                       onmouseout="this.style.background='transparent'; this.style.color='#D44';">
+                        Удалить
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Описание -->
+    <div style="margin-top: 3rem;">
+        <h2 style="margin-bottom: 1rem;">Описание</h2>
+        <p style="white-space: pre-line; line-height: 1.8;">{{ masterclass.description }}</p>
+    </div>
+    
+    <!-- Организатор -->
+    <div style="margin-top: 2rem; padding: 1.5rem; background: white; border-radius: 16px; border: 1px solid #FFE8EE;">
+        <h3 style="margin-bottom: 0.5rem;">Организатор</h3>
+        <p style="font-weight: 500;">{{ masterclass.organizer.get_full_name }}</p>
+        {% if masterclass.organizer.organization_name %}
+            <p style="color: #777;">{{ masterclass.organizer.organization_name }}</p>
+        {% endif %}
+        {% if masterclass.organizer.organization_description %}
+            <p style="margin-top: 0.5rem;">{{ masterclass.organizer.organization_description }}</p>
+        {% endif %}
+    </div>
+    
+    <!-- Отзывы -->
+    <div style="margin-top: 3rem;">
+        <h2 style="margin-bottom: 1.5rem;">Отзывы</h2>
+        
+        {% if user_has_booking and not user_review %}
+            <a href="{% url 'add_review' masterclass.pk %}" class="btn-outline" style="text-decoration: none; display: inline-block; margin-bottom: 1.5rem;">
+                ✏️ Оставить отзыв
+            </a>
+        {% endif %}
+        
+        {% for review in reviews %}
+            <div style="background: white; padding: 1.5rem; border-radius: 16px; margin-bottom: 1rem; border: 1px solid #FFE8EE;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong>{{ review.author.get_full_name }}</strong>
+                    <span style="color: #E8A0B4;">{{ review.rating|rating_stars }}</span>
+                </div>
+                <p style="margin-top: 0.8rem; line-height: 1.6;">{{ review.text }}</p>
+                <small style="color: #999;">{{ review.created_at|date:"d.m.Y" }}</small>
+            </div>
+        {% empty %}
+            <p style="color: #999;">Пока нет отзывов. Будьте первым!</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

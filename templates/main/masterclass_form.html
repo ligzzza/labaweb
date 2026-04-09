@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 700px; margin: 2rem auto;">
+    <div class="card" style="padding: 2.5rem;">
+        <h2 style="margin-bottom: 2rem; font-weight: 500; text-align: center;">{{ title }}</h2>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div style="background: #FFE0E0; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; color: #D44;">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Название -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">
+                    Название мастер-класса
+                </label>
+                <input type="text" name="title" value="{{ form.title.value|default:'' }}"
+                       style="width: 100%; padding: 0.9rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 1rem; outline: none; transition: border 0.2s;"
+                       onfocus="this.style.borderColor='#E8A0B4'"
+                       onblur="this.style.borderColor='#FFD1DC'"
+                       placeholder="Например: Итальянская паста">
+                {% if form.title.errors %}
+                    <small style="color: #D44; display: block; margin-top: 0.3rem;">{{ form.title.errors.0 }}</small>
+                {% endif %}
+            </div>
+
+            <!-- Описание -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">
+                    Описание
+                </label>
+                <textarea name="description" rows="5"
+                          style="width: 100%; padding: 0.9rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 1rem; outline: none; resize: vertical;"
+                          onfocus="this.style.borderColor='#E8A0B4'"
+                          onblur="this.style.borderColor='#FFD1DC'"
+                          placeholder="Подробно опишите, что ждёт участников">{{ form.description.value|default:'' }}</textarea>
+                {% if form.description.errors %}
+                    <small style="color: #D44; display: block; margin-top: 0.3rem;">{{ form.description.errors.0 }}</small>
+                {% endif %}
+            </div>
+
+            <!-- Категория -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">
+                    Категория
+                </label>
+                <select name="category"
+                        style="width: 100%; padding: 0.9rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 1rem; outline: none; background: white; cursor: pointer;"
+                        onfocus="this.style.borderColor='#E8A0B4'"
+                        onblur="this.style.borderColor='#FFD1DC'">
+                    <option value="">Выберите категорию</option>
+                    {% for cat in form.category.field.queryset %}
+                        <option value="{{ cat.pk }}" {% if form.category.value|stringformat:"s" == cat.pk|stringformat:"s" %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                {% if form.category.errors %}
+                    <small style="color: #D44; display: block; margin-top: 0.3rem;">{{ form.category.errors.0 }}</small>
+                {% endif %}
+            </div>
+
+            <!-- Город -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">
+                    Город
+                </label>
+                <input type="text" name="city" value="{{ form.city.value|default:'' }}"
+                       style="width: 100%; padding: 0.9rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 1rem; outline: none;"
+                       onfocus="this.style.borderColor='#E8A0B4'"
+                       onblur="this.style.borderColor='#FFD1DC'"
+                       placeholder="Например: Москва">
+                {% if form.city.errors %}
+                    <small style="color: #D44; display: block; margin-top: 0.3rem;">{{ form.city.errors.0 }}</small>
+                {% endif %}
+            </div>
+
+            <!-- Адрес -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">
+                    Адрес
+                </label>
+                <input type="text" name="address" value="{{ form.address.value|default:'' }}"
+                       style="width: 100%; padding: 0.9rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 1rem; outline: none;"
+                       onfocus="this.style.borderColor='#E8A0B4'"
+                       onblur="this.style.borderColor='#FFD1DC'"
+                       placeholder="Улица, дом, офис">
+                {% if form.address.errors %}
+                    <small style="color: #D44; display: block; margin-top: 0.3rem;">{{ form.address.errors.0 }}</small>
+                {% endif %}
+            </div>
+
+            <!-- Формат -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">
+                    Формат
+                </label>
+                <select name="format"
+                        style="width: 100%; padding: 0.9rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 1rem; outline: none; background: white; cursor: pointer;"
+                        onfocus="this.style.borderColor='#E8A0B4'"
+                        onblur="this.style.borderColor='#FFD1DC'">
+                    <option value="offline" {% if form.format.value == 'offline' %}selected{% endif %}>Офлайн</option>
+                    <option value="online" {% if form.format.value == 'online' %}selected{% endif %}>Онлайн</option>
+                </select>
+                {% if form.format.errors %}
+                    <small style="color: #D44; display: block; margin-top: 0.3rem;">{{ form.format.errors.0 }}</small>
+                {% endif %}
+            </div>
+
+            <!-- Цена -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">
+                    Цена (₽)
+                </label>
+                <input type="number" name="price" value="{{ form.price.value|default:'' }}"
+                       style="width: 100%; padding: 0.9rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 1rem; outline: none;"
+                       onfocus="this.style.borderColor='#E8A0B4'"
+                       onblur="this.style.borderColor='#FFD1DC'"
+                       placeholder="Например: 2500"
+                       min="100" step="100">
+                {% if form.price.errors %}
+                    <small style="color: #D44; display: block; margin-top: 0.3rem;">{{ form.price.errors.0 }}</small>
+                {% else %}
+                    <small style="color: #999; display: block; margin-top: 0.3rem;">Минимальная цена: 100 ₽</small>
+                {% endif %}
+            </div>
+
+            <!-- Максимум участников -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">
+                    Максимум участников
+                </label>
+                <input type="number" name="max_participants" value="{{ form.max_participants.value|default:'' }}"
+                       style="width: 100%; padding: 0.9rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 1rem; outline: none;"
+                       onfocus="this.style.borderColor='#E8A0B4'"
+                       onblur="this.style.borderColor='#FFD1DC'"
+                       placeholder="Например: 10"
+                       min="2">
+                {% if form.max_participants.errors %}
+                    <small style="color: #D44; display: block; margin-top: 0.3rem;">{{ form.max_participants.errors.0 }}</small>
+                {% else %}
+                    <small style="color: #999; display: block; margin-top: 0.3rem;">Минимум 2 участника</small>
+                {% endif %}
+            </div>
+
+            <!-- Даты в две колонки -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">
+                        Дата и время начала
+                    </label>
+                    <input type="datetime-local" name="start_datetime"
+                           value="{{ form.start_datetime.value|date:'Y-m-d\TH:i'|default:'' }}"
+                           style="width: 100%; padding: 0.9rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 1rem; outline: none;"
+                           onfocus="this.style.borderColor='#E8A0B4'"
+                           onblur="this.style.borderColor='#FFD1DC'">
+                    {% if form.start_datetime.errors %}
+                        <small style="color: #D44; display: block; margin-top: 0.3rem;">{{ form.start_datetime.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">
+                        Дата и время окончания
+                    </label>
+                    <input type="datetime-local" name="end_datetime"
+                           value="{{ form.end_datetime.value|date:'Y-m-d\TH:i'|default:'' }}"
+                           style="width: 100%; padding: 0.9rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 1rem; outline: none;"
+                           onfocus="this.style.borderColor='#E8A0B4'"
+                           onblur="this.style.borderColor='#FFD1DC'">
+                    {% if form.end_datetime.errors %}
+                        <small style="color: #D44; display: block; margin-top: 0.3rem;">{{ form.end_datetime.errors.0 }}</small>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if form.non_field_errors %}
+                <div style="background: #FFE0E0; padding: 0.8rem; border-radius: 12px; margin-bottom: 1.5rem; color: #D44;">
+                    {{ form.non_field_errors.0 }}
+                </div>
+            {% endif %}
+
+            <!-- Кнопки -->
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn" style="flex: 1; font-size: 1rem; padding: 0.9rem;">
+                    Сохранить
+                </button>
+                <a href="{% url 'profile' %}" class="btn-outline" style="flex: 1; text-align: center; text-decoration: none; padding: 0.9rem; border: 2px solid var(--soft-blue); border-radius: 30px; color: var(--dark-text);">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

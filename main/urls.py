@@ -26,4 +26,9 @@ urlpatterns = [
     # Профиль
     path('profile/', views.profile, name='profile'),
     path('masterclass/<int:masterclass_pk>/review/', views.add_review, name='add_review'),
+
+    path('masterclass/create/', views.create_masterclass, name='create_masterclass'),
+    path('masterclass/<int:pk>/edit/', views.edit_masterclass, name='edit_masterclass'),
+    path('masterclass/<int:pk>/delete/', views.delete_masterclass, name='delete_masterclass'),
+
 ]

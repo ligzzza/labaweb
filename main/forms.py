@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.core.validators import EmailValidator
 from .models import User
+from .models import MasterClass, Category, Review
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -57,3 +58,122 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class MasterClassForm(forms.ModelForm):
+    class Meta:
+        model = MasterClass
+        fields = ['title', 'description', 'category', 'city', 'address',
+                  'format', 'price', 'max_participants', 'start_datetime', 'end_datetime']
+
+        # ===== Meta widgets =====
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Название мастер-класса'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 5,
+                'placeholder': 'Подробное описание'
+            }),
+            'city': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Город'
+            }),
+            'address': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Адрес'
+            }),
+            'start_datetime': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local'
+            }),
+            'end_datetime': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local'
+            }),
+            'price': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'step': 100
+            }),
+            'max_participants': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1
+            }),
+        }
+        labels = {
+            'title': 'Название',
+            'description': 'Описание',
+            'max_participants': 'Максимум участников',
+        }
+
+    # ===== clean_<fieldname>() =====
+    def clean_price(self):
+        price = self.cleaned_data.get('price')
+        if price and price < 100:
+            raise forms.ValidationError("Цена не может быть меньше 100 ₽")
+        return price
+
+    def clean_max_participants(self):
+        max_parts = self.cleaned_data.get('max_participants')
+        if max_parts and max_parts < 2:
+            raise forms.ValidationError("Минимум 2 участника")
+        return max_parts
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start = cleaned_data.get('start_datetime')
+        end = cleaned_data.get('end_datetime')
+
+        if start and end and start >= end:
+            raise forms.ValidationError("Дата окончания должна быть позже даты начала")
+
+        return cleaned_data
+
+    # ===== save с commit=True =====
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        # Дополнительная логика перед сохранением
+        if not instance.pk:  # новый объект
+            instance.status = 'pending'  # на модерацию
+
+        if commit:
+            instance.save()
+            self.save_m2m()  # сохраняем many-to-many связи если есть
+
+        return instance
+
+
+# ===== ФОРМА ДЛЯ ОТЗЫВА =====
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'text']
+        widgets = {
+            'rating': forms.Select(choices=[(i, f"{'★' * i}") for i in range(1, 6)], attrs={
+                'class': 'form-control'
+            }),
+            'text': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Ваш отзыв...'
+            }),
+        }
+
+    def clean_text(self):
+        text = self.cleaned_data.get('text')
+        if len(text) < 10:
+            raise forms.ValidationError("Отзыв должен содержать минимум 10 символов")
+        return text
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.status = 'pending'  # на модерацию
+
+        if commit:
+            instance.save()
+
+        return instance

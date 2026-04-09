@@ -16,6 +16,14 @@
             <p><strong>Роль:</strong> {{ user.get_role_display }}</p>
             <p><strong>Телефон:</strong> {{ user.phone|default:"Не указан" }}</p>
             <p><strong>Дата регистрации:</strong> {{ user.date_joined|date:"d.m.Y" }}</p>
+                        <!-- ===== КНОПКА ДЛЯ ОРГАНИЗАТОРА ===== -->
+            {% if user.role == 'organizer' or user.role == 'admin' or user.is_superuser %}
+                <div style="margin-top: 2rem;">
+                    <a href="{% url 'create_masterclass' %}" class="btn" style="text-decoration: none; display: inline-block;">
+                        ✨ Создать мастер-класс
+                    </a>
+                </div>
+            {% endif %}
         </div>
         
         <!-- Правая колонка: статистика -->
@@ -24,6 +32,10 @@
             <p><strong>Всего бронирований:</strong> {{ bookings.count }}</p>
             <p><strong>Активных бронирований:</strong> {{ active_bookings.count }}</p>
             <p><strong>В избранном:</strong> {{ favorites.count }}</p>
+
+            {% if user.role == 'organizer' or user.role == 'admin' or user.is_superuser %}
+                <p style="margin-top: 1rem;"><strong>Создано мастер-классов:</strong> {{ user.masterclasses.count }}</p>
+            {% endif %}
         </div>
     </div>
     

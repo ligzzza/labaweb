@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление мастер-класса{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; margin: 4rem auto;">
+    <div class="card" style="padding: 2.5rem; text-align: center;">
+
+        <!-- Иконка -->
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🗑️</div>
+
+        <h2 style="margin-bottom: 1rem; font-weight: 500; color: var(--dark-text);">Удалить мастер-класс?</h2>
+
+        <p style="margin-bottom: 0.5rem; font-size: 1.2rem; font-weight: 500; color: #E8A0B4;">
+            «{{ masterclass.title }}»
+        </p>
+
+        <p style="margin-bottom: 2rem; color: #999;">
+            Это действие нельзя будет отменить
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button type="submit"
+                        style="padding: 0.8rem 2rem; background: #FF6B6B; border: none; border-radius: 30px; color: white; font-family: 'Jost', sans-serif; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.3s;"
+                        onmouseover="this.style.background='#E05555';"
+                        onmouseout="this.style.background='#FF6B6B';">
+                    Да, удалить
+                </button>
+
+                <a href="{% url 'masterclass_detail' masterclass.pk %}"
+                   style="padding: 0.8rem 2rem; background: transparent; border: 2px solid var(--soft-blue); border-radius: 30px; color: var(--dark-text); text-decoration: none; font-weight: 500; transition: all 0.3s;"
+                   onmouseover="this.style.background='var(--soft-blue)';"
+                   onmouseout="this.style.background='transparent';">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -145,6 +145,15 @@ class MasterClass(models.Model):
     objects = models.Manager()  # стандартный менеджер
     approved_objects = ApprovedMasterClassManager()
 
+    # ManyToMany через Booking (уже существующую модель)
+    participants = models.ManyToManyField(
+        User,
+        through='Booking',
+        through_fields=('masterclass', 'participant'),
+        related_name='joined_masterclasses',
+        verbose_name="Участники"
+    )
+
     class Meta:
         verbose_name = "Мастер-класс"
         verbose_name_plural = "Мастер-классы"
@@ -248,9 +257,15 @@ class Booking(models.Model):
         return f"{self.participant.get_full_name()} → {self.masterclass.title}"
 
     def save(self, *args, **kwargs):
-        # Автоматически фиксируем цену на момент бронирования
+        # Автоматически считаем общую цену
         if not self.total_price:
             self.total_price = self.masterclass.price * self.participants_count
+
+        # При подтверждении бронирования увеличиваем счётчик участников
+        if self.pk is None and self.status == 'confirmed':
+            self.masterclass.current_participants += self.participants_count
+            self.masterclass.save()
+
         super().save(*args, **kwargs)
 
 
