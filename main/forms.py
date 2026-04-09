@@ -72,7 +72,7 @@ class MasterClassForm(forms.ModelForm):
     class Meta:
         model = MasterClass
         fields = ['title', 'description', 'category', 'city', 'address',
-                  'format', 'price', 'max_participants', 'start_datetime', 'end_datetime']
+                  'format', 'price', 'max_participants', 'start_datetime', 'end_datetime', 'online_link']
 
         # ===== Meta widgets =====
         widgets = {
@@ -109,6 +109,11 @@ class MasterClassForm(forms.ModelForm):
             'max_participants': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': 1
+            }),
+            'online_link': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://zoom.us/j/... или https://youtube.com/...',
+                'style': 'width: 100%; padding: 0.9rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: "Jost", sans-serif;'
             }),
         }
         labels = {

@@ -34,7 +34,15 @@
             <p style="margin-bottom: 0.5rem;">📍 {{ masterclass.city }}{% if masterclass.address %}, {{ masterclass.address }}{% endif %}</p>
             <p style="margin-bottom: 0.5rem;">📅 {{ masterclass.start_datetime|date:"d.m.Y H:i" }} — {{ masterclass.end_datetime|date:"H:i" }}</p>
             <p style="margin-bottom: 0.5rem;">👥 {{ masterclass.current_participants }}/{{ masterclass.max_participants }} участников</p>
-            <p style="margin-bottom: 1rem;">🎨 {{ masterclass.get_format_display }}</p>
+            <p style="margin-bottom: 0.5rem;">🎨 {{ masterclass.get_format_display }}</p>
+
+            {% if masterclass.format == 'online' and masterclass.online_link %}
+                <p style="margin-bottom: 1rem;">
+                    🔗 <a href="{{ masterclass.online_link }}" target="_blank" style="color: #E8A0B4; text-decoration: none;">
+                        Ссылка на трансляцию
+                    </a>
+                </p>
+            {% endif %}
 
             <p style="font-size: 2rem; font-weight: 600; color: #E8A0B4; margin-bottom: 1.5rem;">
                 {{ masterclass.price }} ₽
@@ -77,11 +85,11 @@
                 <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
                     <a href="{% url 'edit_masterclass' masterclass.pk %}"
                        style="display: inline-block; padding: 0.7rem 1.5rem; background: transparent; border: 2px solid var(--soft-blue); border-radius: 30px; color: var(--dark-text); text-decoration: none; font-weight: 500;">
-                        ✏️ Редактировать
+                        Редактировать
                     </a>
                     <a href="{% url 'delete_masterclass' masterclass.pk %}"
                        style="display: inline-block; padding: 0.7rem 1.5rem; background: transparent; border: 2px solid #FFB5B5; border-radius: 30px; color: #D44; text-decoration: none; font-weight: 500;">
-                        🗑️ Удалить
+                        Удалить
                     </a>
                 </div>
             {% endif %}

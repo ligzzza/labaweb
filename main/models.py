@@ -142,6 +142,12 @@ class MasterClass(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
+    online_link = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name="Ссылка на трансляцию"
+    )
+
     objects = models.Manager()  # стандартный менеджер
     approved_objects = ApprovedMasterClassManager()
 

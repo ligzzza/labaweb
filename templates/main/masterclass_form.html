@@ -116,6 +116,24 @@
                 {% endif %}
             </div>
 
+            <!-- Ссылка на трансляцию (только для онлайн) -->
+            <div style="margin-bottom: 1.5rem;" id="online-link-field" style="display: none;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">
+                    Ссылка на трансляцию
+                </label>
+                <input type="url" name="online_link" value="{{ form.online_link.value|default:'' }}"
+                       style="width: 100%; padding: 0.9rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 1rem; outline: none;"
+                       onfocus="this.style.borderColor='#E8A0B4'"
+                       onblur="this.style.borderColor='#FFD1DC'"
+                       placeholder="https://zoom.us/j/... или https://youtube.com/...">
+                <small style="color: #999; display: block; margin-top: 0.3rem;">
+                    Укажите ссылку на Zoom, YouTube или другую платформу
+                </small>
+                {% if form.online_link.errors %}
+                    <small style="color: #D44;">{{ form.online_link.errors.0 }}</small>
+                {% endif %}
+            </div>
+
             <!-- Цена -->
             <div style="margin-bottom: 1.5rem;">
                 <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">
@@ -299,5 +317,23 @@
         imageUpload.files = files;
         imageUpload.dispatchEvent(new Event('change'));
     });
+</script>
+<script>
+    // Показывать/скрывать поле ссылки в зависимости от формата
+    const formatSelect = document.querySelector('select[name="format"]');
+    const onlineLinkField = document.getElementById('online-link-field');
+
+    function toggleOnlineLink() {
+        if (formatSelect.value === 'online') {
+            onlineLinkField.style.display = 'block';
+        } else {
+            onlineLinkField.style.display = 'none';
+        }
+    }
+
+    if (formatSelect) {
+        formatSelect.addEventListener('change', toggleOnlineLink);
+        toggleOnlineLink(); // при загрузке
+    }
 </script>
 {% endblock %}

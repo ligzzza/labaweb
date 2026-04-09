@@ -217,7 +217,7 @@ class MasterClassAdmin(admin.ModelAdmin):
             'fields': ('title', 'description', 'category', 'organizer')
         }),
         ('Место и формат', {
-            'fields': ('city', 'address', 'format')
+            'fields': ('city', 'address', 'format', 'online_link')
         }),
         ('Цена и места', {
             'fields': ('price', 'max_participants', 'current_participants', 'free_places_display')
