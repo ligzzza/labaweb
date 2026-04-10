@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load masterclass_tags %}
+
+{% block title %}Каталог мастер-классов{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem;">
+
+    <!-- Заголовок -->
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2.2rem; font-weight: 500; color: var(--dark-text);">Каталог мастер-классов</h1>
+        <p style="color: #999;">Найдите идеальное занятие для себя</p>
+    </div>
+
+    <!-- Поиск -->
+    <div style="margin-bottom: 1rem;">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Поиск по названию..."
+               style="width: 100%; padding: 0.8rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif;">
+    </div>
+
+    <!-- Фильтры -->
+    <div style="background: white; padding: 1.5rem; border-radius: 20px; margin-bottom: 2rem; border: 1px solid #FFE8EE;">
+        <form method="get" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+
+            <!-- Категория -->
+            <div style="flex: 1; min-width: 180px;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">Категория</label>
+                <select name="category"
+                        style="width: 100%; padding: 0.8rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; background: white;">
+                    <option value="">Все категории</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Формат -->
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">Формат</label>
+                <select name="format"
+                        style="width: 100%; padding: 0.8rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; background: white;">
+                    <option value="">Все форматы</option>
+                    <option value="online" {% if current_format == 'online' %}selected{% endif %}>Онлайн</option>
+                    <option value="offline" {% if current_format == 'offline' %}selected{% endif %}>Офлайн</option>
+                </select>
+            </div>
+
+            <!-- Город -->
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark-text);">Город</label>
+                <select name="city"
+                        style="width: 100%; padding: 0.8rem; border: 1px solid #FFD1DC; border-radius: 12px; font-family: 'Jost', sans-serif; background: white;">
+                    <option value="">Все города</option>
+                    {% for city in cities %}
+                        <option value="{{ city }}" {% if current_city == city %}selected{% endif %}>{{ city }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Кнопки -->
+            <div style="display: flex; gap: 0.8rem;">
+                <button type="submit" class="btn" style="padding: 0.8rem 1.8rem; font-size: 1rem;">
+                    Применить
+                </button>
+                <a href="{% url 'catalog' %}" class="btn-outline" style="padding: 0.8rem 1.8rem; text-decoration: none; border: 2px solid var(--soft-blue); border-radius: 30px; color: var(--dark-text);">
+                    Сбросить
+                </a>
+            </div>
+        </form>
+    </div>
+    {% if user.is_admin %}
+        <div style="margin: 1.5rem 0 2rem 0; padding: 1rem 1.5rem; background: white; border-radius: 16px; border: 1px solid #FFE8EE; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                <span style="font-size: 1.5rem;">🛠️</span>
+                <span style="color: #777; font-size: 0.95rem;">Администратор: массовое обновление данных</span>
+            </div>
+            <form method="post" action="{% url 'fix_city_names' %}">
+                {% csrf_token %}
+                <button type="submit"
+                        style="background: white; border: 1.5px solid #FFD1DC; border-radius: 30px; padding: 0.6rem 1.5rem; font-family: 'Jost', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--dark-text); cursor: pointer; transition: all 0.2s;"
+                        onmouseover="this.style.background='#FFF5F7'; this.style.borderColor='#E8A0B4';"
+                        onmouseout="this.style.background='white'; this.style.borderColor='#FFD1DC';">
+                    🔄 "Москва" → "г. Москва"
+                </button>
+            </form>
+        </div>
+    {% endif %}
+
+    <!-- Результаты -->
+    {% if masterclasses %}
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;">
+            {% for mk in masterclasses %}
+                <a href="{{ mk.get_absolute_url }}" style="text-decoration: none; color: inherit;">
+                    <div style="background: white; border-radius: 20px; overflow: hidden; border: 1px solid #FFE8EE; transition: transform 0.2s, box-shadow 0.2s; height: 100%;">
+
+                        <!-- Изображение -->
+                        {% if mk.images.first %}
+                            <img src="{{ mk.images.first.image.url }}" alt="{{ mk.title }}"
+                                 style="width: 100%; height: 220px; object-fit: cover;">
+                        {% else %}
+                            <div style="width: 100%; height: 220px; background: var(--soft-pink); display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                                🎨
+                            </div>
+                        {% endif %}
+
+                        <!-- Информация -->
+                        <div style="padding: 1.5rem;">
+                            <h3 style="margin-bottom: 0.5rem; font-weight: 500; font-size: 1.2rem;">{{ mk.title }}</h3>
+                            <p style="color: #777; margin-bottom: 0.5rem;">📍 {{ mk.city }}</p>
+                            <p style="color: #777; margin-bottom: 0.5rem;">📅 {{ mk.start_datetime|date:"d.m.Y H:i" }}</p>
+                            <p style="color: #777; margin-bottom: 1rem;">🎨 {{ mk.get_format_display }}</p>
+                            <p style="font-size: 1.4rem; font-weight: 600; color: #E8A0B4;">{{ mk.price }} ₽</p>
+                            <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">
+                                Свободно {{ mk.free_places }} {{ mk.free_places|rupluralize:"место,места,мест" }}
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+
+        <!-- Пагинация -->
+        {% if masterclasses.has_other_pages %}
+            <div style="display: flex; justify-content: center; gap: 0.8rem; margin-top: 3rem;">
+                {% if masterclasses.has_previous %}
+                    <a href="?page={{ masterclasses.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_format %}&format={{ current_format }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}"
+                       style="padding: 0.6rem 1.2rem; border: 2px solid var(--soft-blue); border-radius: 30px; text-decoration: none; color: var(--dark-text);">
+                        ←
+                    </a>
+                {% endif %}
+
+                <span style="padding: 0.6rem 1.2rem; color: var(--dark-text);">
+                    {{ masterclasses.number }} из {{ masterclasses.paginator.num_pages }}
+                </span>
+
+                {% if masterclasses.has_next %}
+                    <a href="?page={{ masterclasses.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_format %}&format={{ current_format }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}"
+                       style="padding: 0.6rem 1.2rem; border: 2px solid var(--soft-blue); border-radius: 30px; text-decoration: none; color: var(--dark-text);">
+                        →
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    {% else %}
+        <div style="text-align: center; padding: 4rem; background: white; border-radius: 20px; border: 1px solid #FFE8EE;">
+            <p style="font-size: 3rem; margin-bottom: 1rem;">🔍</p>
+            <p style="font-size: 1.2rem; color: #999;">Ничего не найдено</p>
+            <a href="{% url 'catalog' %}" class="btn" style="margin-top: 1.5rem;">Сбросить фильтры</a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

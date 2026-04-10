@@ -34,6 +34,8 @@
             <p style="margin-bottom: 0.5rem;">📍 {{ masterclass.city }}{% if masterclass.address %}, {{ masterclass.address }}{% endif %}</p>
             <p style="margin-bottom: 0.5rem;">📅 {{ masterclass.start_datetime|date:"d.m.Y H:i" }} — {{ masterclass.end_datetime|date:"H:i" }}</p>
             <p style="margin-bottom: 0.5rem;">👥 {{ masterclass.current_participants }}/{{ masterclass.max_participants }} участников</p>
+            <!-- ===== ДЕМОНСТРАЦИЯ count() ===== -->
+            <p style="margin-bottom: 0.5rem; color: #B5EAD7;">📊 Всего бронирований: {{ bookings_count }}</p>
             <p style="margin-bottom: 0.5rem;">🎨 {{ masterclass.get_format_display }}</p>
 
             {% if masterclass.format == 'online' and masterclass.online_link %}
@@ -123,7 +125,7 @@
 
     <!-- Отзывы -->
     <div style="margin-top: 3rem;">
-        <h2 style="margin-bottom: 1.5rem;">Отзывы</h2>
+        <h2 style="margin-bottom: 1.5rem;">Отзывы ({{ reviews_count }})</h2>  <!-- ← ДЕМОНСТРАЦИЯ count() -->
 
         {% for review in reviews %}
             <div style="background: white; padding: 1.5rem; border-radius: 16px; margin-bottom: 1rem; border: 1px solid #FFE8EE;">

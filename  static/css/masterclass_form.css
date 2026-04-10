@@ -1,0 +1,10 @@
+/* Демонстрация class Media — стили для формы мастер-класса */
+.masterclass-form input:focus,
+.masterclass-form textarea:focus,
+.masterclass-form select:focus {
+    border-color: #E8A0B4 !important;
+    box-shadow: 0 0 0 3px rgba(232, 160, 180, 0.1) !important;
+    outline: none !important;
+}
+
+/* Сообщение в консоль будет из JS */

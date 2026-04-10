@@ -15,19 +15,19 @@
                     Пожалуйста, исправьте ошибки ниже
                 </div>
             {% endif %}
-            
+
             <div style="margin-bottom: 1.5rem;">
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--dark-text);">Имя пользователя</label>
-                <input type="text" name="username" required 
+                <input type="text" name="username" required
                        style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 12px; font-family: 'Jost', sans-serif;">
                 {% if form.username.errors %}
                     <small style="color: #D44;">{{ form.username.errors.0 }}</small>
                 {% endif %}
             </div>
-            
+
             <div style="margin-bottom: 1.5rem;">
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--dark-text);">Пароль</label>
-                <input type="password" name="password1" required 
+                <input type="password" name="password1" required
                        style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 12px; font-family: 'Jost', sans-serif;">
                 {% if form.password1.errors %}
                     <small style="color: #D44;">{{ form.password1.errors.0 }}</small>
@@ -36,10 +36,10 @@
                     Не менее 8 символов, не только цифры
                 </small>
             </div>
-            
+
             <div style="margin-bottom: 1.5rem;">
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--dark-text);">Подтверждение пароля</label>
-                <input type="password" name="password2" required 
+                <input type="password" name="password2" required
                        style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 12px; font-family: 'Jost', sans-serif;">
                 {% if form.password2.errors %}
                     <small style="color: #D44;">{{ form.password2.errors.0 }}</small>
@@ -51,9 +51,12 @@
                 <input type="email" name="email" required
                        style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 12px; font-family: 'Jost', sans-serif;">
                 {% if form.email.errors %}
-                    <small style="color: #D44;">{{ form.email.errors.0 }}</small>
+                    <small style="color: #D44; display: block; margin-top: 0.3rem;">
+                        {{ form.email.errors.0 }}
+                    </small>
                 {% endif %}
             </div>
+
 
                         <!-- Выбор роли -->
             <div style="margin-bottom: 1.5rem;">
@@ -73,10 +76,10 @@
                     <small style="color: #D44;">{{ form.role.errors.0 }}</small>
                 {% endif %}
             </div>
-            
+
             <button type="submit" class="btn" style="width: 100%; font-size: 1rem;">Зарегистрироваться</button>
         </form>
-        
+
         <p style="text-align: center; margin-top: 1.5rem;">
             Уже есть аккаунт? <a href="{% url 'login' %}" style="color: #E8A0B4; text-decoration: none;">Войти</a>
         </p>

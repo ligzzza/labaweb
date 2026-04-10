@@ -121,6 +121,16 @@ class MasterClassForm(forms.ModelForm):
             'description': 'Описание',
             'max_participants': 'Максимум участников',
         }
+        help_texts = {
+            'price': 'Минимум 100 ₽',
+            'max_participants': 'Минимум 2 участника',
+        }
+
+        error_messages = {
+            'price': {'min_value': 'Цена не может быть меньше 100 ₽'},
+        }
+        css = {'all': ('css/masterclass_form.css',)}
+        js = ('js/masterclass_form.js',)
 
 
     # ===== clean_<fieldname>() =====

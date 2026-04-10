@@ -2,14 +2,14 @@ from rest_framework import viewsets, generics, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth import get_user_model
-
+from django.contrib import messages
 from .forms import CustomUserCreationForm
 from .models import MasterClass, Category, Booking, Review, Favorite, Notification
 from .serializers import (
     MasterClassSerializer, CategorySerializer, BookingSerializer,
     ReviewSerializer, FavoriteSerializer, UserSerializer
 )
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
@@ -184,16 +184,88 @@ from django.shortcuts import render
 # ============================================================
 # ФРОНТЕНД (HTML-СТРАНИЦЫ)
 # ============================================================
-
 def home(request):
-    """Главная страница"""
-    return render(request, 'main/home.html')
+    """Главная страница с демонстрацией заданий"""
+    from django.utils import timezone
+
+    # ДЕМОНСТРАЦИЯ filter() и __ (lookup) + Limiting QuerySets [:6]
+    upcoming_mk = MasterClass.objects.filter(
+        status='approved',
+        start_datetime__gte=timezone.now()
+    ).order_by('start_datetime')[:6]  #ближайшие мастер-класс
+
+    # ДЕМОНСТРАЦИЯ exclude() + Limiting QuerySets [:3]
+    online_mk = MasterClass.objects.filter(
+        status='approved'
+    ).exclude(
+        format='offline'
+    ).order_by('start_datetime')[:3]
+
+    # ДЕМОНСТРАЦИЯ __ (связанная таблица) + Limiting QuerySets [:4]
+    cooking_mk = MasterClass.objects.filter(
+        category__name__icontains='кулин'
+    )[:4]
+    context = {
+        'upcoming_mk': upcoming_mk,
+        'online_mk': online_mk,
+        'cooking_mk': cooking_mk,
+        'categories': Category.objects.all(),
+    }
+    return render(request, 'main/home.html', context)
 
 
 def catalog(request):
-    """Каталог мастер-классов"""
-    return render(request, 'main/catalog.html')
+    """Каталог мастер-классов с фильтрами и пагинацией"""
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+    masterclasses = MasterClass.approved_objects.all()
+
+    # ===== CHAINING FILTERS =====
+    category_slug = request.GET.get('category')
+    if category_slug:
+        masterclasses = masterclasses.filter(category__slug=category_slug)
+
+    format_type = request.GET.get('format')
+    if format_type:
+        masterclasses = masterclasses.filter(format=format_type)
+
+    city = request.GET.get('city')
+    if city:
+        masterclasses = masterclasses.filter(city__icontains=city)
+
+    # ===== ПАГИНАЦИЯ =====
+    paginator = Paginator(masterclasses, 9)
+    page = request.GET.get('page')
+
+    try:
+        masterclasses_page = paginator.page(page)
+    except PageNotAnInteger:
+        masterclasses_page = paginator.page(1)
+    except EmptyPage:
+        masterclasses_page = paginator.page(paginator.num_pages)
+
+    # ===== ГОРОДА ДЛЯ ФИЛЬТРА (без "Онлайн" и пустых) =====
+    cities = MasterClass.objects.exclude(
+        city__iexact='Онлайн'  # iexact — нечувствительно к регистру
+    ).exclude(
+        city__iexact='Online'
+    ).exclude(
+        city__exact=''
+    ).values_list('city', flat=True).distinct().order_by('city')
+    # ДЕМОНСТРАЦИЯ values() — статистика для отладки (скрыто от пользователя)
+    city_stats = MasterClass.objects.values('city', 'price')[:5]  # первые 5 записей
+
+    # ===== КОНТЕКСТ =====
+    context = {
+        'masterclasses': masterclasses_page,
+        'categories': Category.objects.all(),
+        'cities': cities,
+        'city_stats': city_stats,
+        'current_category': category_slug,
+        'current_format': format_type,
+        'current_city': city,
+    }
+    return render(request, 'main/catalog.html', context)
 
 def masterclass_detail(request, pk):
     masterclass = get_object_or_404(MasterClass, pk=pk, status='approved')
@@ -210,11 +282,19 @@ def masterclass_detail(request, pk):
         if user_has_booking:
             user_review = Review.objects.filter(author=request.user, masterclass=masterclass).first()
 
+        is_favorite = Favorite.objects.filter(user=request.user, masterclass=masterclass).exists()
+
+    # ===== ДЕМОНСТРАЦИЯ count() =====
+    bookings_count = masterclass.bookings.count()  # ← count() считает количество
+    reviews_count = masterclass.reviews.filter(status='approved').count()
     context = {
         'masterclass': masterclass,
         'reviews': reviews,
         'user_has_booking': user_has_booking,
         'user_review': user_review,
+        'is_favorite': is_favorite,
+        'bookings_count': bookings_count,  # ← добавить в контекст
+        'reviews_count': reviews_count,
     }
     return render(request, 'main/masterclass_detail.html', context)
 
@@ -362,3 +442,10 @@ def catalog_optimized(request):
         'masterclasses': masterclasses,
         'categories': categories,
     })
+
+def fix_city_names(request):
+    """Демонстрация update() — массовое обновление"""
+    if request.method == 'POST' and request.user.is_admin:
+        count = MasterClass.objects.filter(city='Москва').update(city='г. Москва')
+        messages.success(request, f'Обновлено записей: {count}')
+    return redirect('catalog')
