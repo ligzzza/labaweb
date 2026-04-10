@@ -102,6 +102,16 @@
         <p style="white-space: pre-line; line-height: 1.8;">{{ masterclass.description }}</p>
     </div>
 
+    {% if masterclass.program_file %}
+        <div style="margin-top: 2rem; padding: 1.5rem; background: white; border-radius: 16px; border: 1px solid #FFE8EE;">
+            <h3 style="margin-bottom: 1rem;">Программа мастер-класса</h3>
+            <a href="{{ masterclass.program_file.url }}" target="_blank"
+               style="display: inline-block; padding: 0.8rem 1.5rem; background: var(--soft-pink); border-radius: 30px; color: var(--dark-text); text-decoration: none; font-weight: 500;">
+                Скачать программу (PDF)
+            </a>
+        </div>
+    {% endif %}
+
     <!-- Организатор -->
     <div style="margin-top: 2rem; padding: 1.5rem; background: white; border-radius: 16px; border: 1px solid #FFE8EE;">
         <h3 style="margin-bottom: 0.5rem;">Организатор</h3>

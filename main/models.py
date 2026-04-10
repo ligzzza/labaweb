@@ -147,6 +147,13 @@ class MasterClass(models.Model):
         null=True,
         verbose_name="Ссылка на трансляцию"
     )
+    #Задание 12 Django 4
+    program_file = models.FileField(
+        upload_to='programs/',
+        blank=True,
+        null=True,
+        verbose_name="Программа (PDF)"
+    )
 
     objects = models.Manager()  # стандартный менеджер
     approved_objects = ApprovedMasterClassManager()

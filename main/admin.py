@@ -6,7 +6,13 @@ from .models import (
     User, Category, MasterClass, Image,
     Booking, Review, Favorite, Notification
 )
-
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from django.http import HttpResponse
+import io
+import os
 
 # ============================================================
 # 1. ПОЛЬЗОВАТЕЛЬ
@@ -155,6 +161,77 @@ class ReviewInline(admin.TabularInline):
         return False
 
 
+
+@admin.action(description="📄 Сгенерировать PDF-отчёт")
+def generate_pdf_report(modeladmin, request, queryset):
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    # Подключаем шрифт DejaVu (лежит в main/fonts/)
+    font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'DejaVuSans.ttf')
+
+    if os.path.exists(font_path):
+        pdfmetrics.registerFont(TTFont('DejaVu', font_path))
+        font_name = 'DejaVu'
+    else:
+        font_name = 'Helvetica'
+
+    # Заголовок
+    p.setFont(font_name, 18)
+    p.drawString(50, height - 50, "Отчёт по мастер-классам")
+
+    p.setFont(font_name, 11)
+    p.drawString(50, height - 70, f"Дата: {timezone.now().strftime('%d.%m.%Y %H:%M')}")
+
+    p.line(50, height - 80, width - 50, height - 80)
+
+    # Заголовки таблицы
+    y = height - 110
+    p.setFont(font_name, 12)
+    p.drawString(50, y, "Название")
+    p.drawString(250, y, "Город")
+    p.drawString(370, y, "Цена")
+    p.drawString(460, y, "Участники")
+
+    y -= 25
+    p.setFont(font_name, 10)
+
+    total_price = 0
+    total_participants = 0
+
+    for mk in queryset:
+        if y < 60:
+            p.showPage()
+            y = height - 50
+            p.setFont(font_name, 10)
+
+        title = mk.title[:25] + '...' if len(mk.title) > 25 else mk.title
+        p.drawString(50, y, title)
+        p.drawString(250, y, mk.city or '—')
+        p.drawString(370, y, f"{mk.price} ₽")
+        p.drawString(460, y, f"{mk.current_participants}/{mk.max_participants}")
+
+        total_price += float(mk.price or 0)
+        total_participants += mk.current_participants or 0
+        y -= 20
+
+    # Итоги
+    y -= 30
+    p.line(50, y, width - 50, y)
+    y -= 25
+    p.setFont(font_name, 12)
+    p.drawString(50, y, f"Всего мастер-классов: {queryset.count()}")
+    p.drawString(250, y, f"Стоимость: {total_price:.0f} ₽")
+    p.drawString(460, y, f"Участников: {total_participants}")
+
+    p.save()
+    buffer.seek(0)
+
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="masterclasses_report.pdf"'
+    return response
+
 # ============================================================
 # 5. МАСТЕР-КЛАСС (главная модель с максимальными настройками)
 # ============================================================
@@ -214,7 +291,7 @@ class MasterClassAdmin(admin.ModelAdmin):
     # === fieldsets: группировка полей ===
     fieldsets = (
         ('Основная информация', {
-            'fields': ('title', 'description', 'category', 'organizer')
+            'fields': ('title', 'description', 'category', 'organizer', 'program_file')
         }),
         ('Место и формат', {
             'fields': ('city', 'address', 'format', 'online_link')
@@ -238,7 +315,7 @@ class MasterClassAdmin(admin.ModelAdmin):
     inlines = [ImageInline, BookingInline, ReviewInline]
 
     # === actions: массовые действия ===
-    actions = ['approve_masterclasses', 'reject_masterclasses']
+    actions = ['approve_masterclasses', 'reject_masterclasses', generate_pdf_report]
 
     # ===== КАСТОМНЫЕ МЕТОДЫ ДЛЯ list_display =====
 
@@ -582,6 +659,8 @@ class NotificationAdmin(admin.ModelAdmin):
     def mark_as_unread(self, request, queryset):
         updated = queryset.update(is_read=False)
         self.message_user(request, f"Отмечено непрочитанными: {updated}")
+
+
 
 
 # ============================================================
